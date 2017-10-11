@@ -1,409 +1,355 @@
-## Lab 14 - Rendering configuration using Jinja2
+## Lab 14 - Jinja2 Templating in Python
 
-In the preceding labs, we incrementally built upon previous concepts finally ending with a script that generated configuration and deployed it to an end device, based on user input. All along, we were using 2 functions - `generate_config_file` and `generate_commands` - to build our list of configuration commands. We were relying on the `format` string built-in method to correctly format our desired configurations. This can get quite unmanageable when we have to deal with large configurations.
-In this lab, we will use the Jinja2 templating engine to generate the configuration, in lieu of the format functions.
-### Task 1 - Collecting input using Python's raw_input method
+### Task 1 - Creating Configuration Templates
+
+This task walks through how to convert network device configurations into Jinja2 templates and variables while working on the Python shell.
 
 ##### Step 1
 
-Navigate to the `scripts` directory within your home directory.:
+Create a new sub-directory in the `scripts` directory called `templates`.
 
 ```
-ntc@ntc:~$ cd scripts
+ntc@ntc:~/scripts$ mkdir templates
 ```
+
+In the new sub-directory, create a new file called `snmp-1.j2`.
+
+In this file, create a template that could be used instead of the following SNMP configuration.  
+
+```
+snmp-server contact JOHN SMITH
+snmp-server location NEW YORK CITY
+snmp-server community networktocode ro
+snmp-server community netsecret123 rw
+```
+
+You should replace each value with a variable surrounded by double curly braces.
+
+The new template (`/home/ntc/scripts/templates/snmp-1.j2`) should look like this:
+
+```
+snmp-server contact {{ contact }}
+snmp-server location {{ location }}
+snmp-server community {{ ro_string }} ro
+snmp-server community {{ rw_string }} rw
+
+```
+
 
 ##### Step 2
 
-Create a new directory here called `templates` and change to that directory. We will store our Jinja2 template here.
+While you are in the `templates` directory, enter the Python shell.
 
 ```
-ntc@ntc:~$ mkdir templates
-ntc@ntc:~$ cd templates
-ntc@ntc:~/templates$
-
+ntc@ntc:~/templates$ python
+Python 2.7.6 (default, Jun 22 2015, 17:58:13) 
+[GCC 4.8.2] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
 ```
 
 ##### Step 3
 
-Touch a new template file within here.
+Create four new variables while in the Python shell that are equal to the values that were replaced when creating the template.
 
-``` shell
-ntc@ntc:~/templates$ touch interfaces.j2
+```
+>>> snmp_contact = 'JOHN SMITH'
+>>> snmp_location = 'NEW YORK CITY'
+>>> snmp_ro = 'networktocode'
+>>> snmp_rw = 'netsecret123'
+>>>
 ```
 
 ##### Step 4
 
-Open this file in Sublime Text or any other text editor.
+Import the required Python modules to work with Jinja2 in Python and then load the template `snmp-1.j2` you created in Step 1.
 
-Write the Jinja2 template configuration that represents the desired interface configuration.
-
-``` python
-{% for interface, config_params in interfaces.items() %}
-  interface {{ interface }}
-  {%- for feature, value in config_params.items() %}
-    {{ feature }} {{ value }}
-  {%- endfor %}
-{%- endfor %}
-
-```
-> Note that the `-` symbols at the beginning of the Jinja2 controls are for stripping white space. Feel free to experiment with this, by removing the `-` and rendering the final configuration, during later steps of this lab.
-
-##### Step 5
-
-Navigate back to the `scripts` directory and make a copy the python file you created in the previous lab.
-
-```
-ntc@ntc:~/scripts$ cp parse_user_input.py jinja2_generate_config.py
-```
-
-##### Step 6
-
-In order to visualize how the Jinja2 templating engine is rendering the configuration, we will explore it using the Python interpreter shell first.
-
-From the command prompt type `python` to enter the Python interpreter shell
-
-``` shell
-ntc@ntc:~/scripts$ python
-Python 2.7.12 (default, Nov 19 2016, 06:48:10) 
-[GCC 5.4.0 20160609] on linux2
-Type "help", "copyright", "credits" or "license" for more information.
->>> 
-```
-
-##### Step 7
-
-The Jinja2 templating engine needs to know about the location of the template file(s). This is done by importing the `Enivronment` and `FileSystemloader` objects from the Jinja2 library.
-
-``` shell
+```python
 >>> from jinja2 import Environment, FileSystemLoader
 
-```
+>>> ENV = Environment(loader=FileSystemLoader('.'))
 
-Create a variable called `ENV` to identify the directory containing the template file as a Jinja2 `Environment` object.
-
-``` shell
->>>ENV = Environment(loader=FileSystemLoader('./templates'))
-
-```
-Now, collect the template file into a variable called `template`
-
-``` shell
->>>template = ENV.get_template('interfaces.j2')
-
-```
-
-Then, collect the interface configuration data into a variable called interfaces
-
-``` shell
->>> import yaml
+>>> template = ENV.get_template("snmp-1.j2")
 >>> 
->>> 
->>> 
->>> with open('csr1.yaml') as yaml_file_handler:
-...   interfaces = yaml.load(yaml_file_handler)
-... 
->>> print interfaces
-{'GigabitEthernet2': {'duplex': 'half', 'speed': 100, 'description': 'Configured_by_Python_GigabitEthernet2'}, 'GigabitEthernet1': {'duplex': 'full', 'speed': 1000, 'description': 'Configured_by_Python_GigabitEthernet1'}, 'Loopback101': {'description': 'Configured_by_Python_Loopback101'}, 'Loopback100': {'description': 'Configured_by_Python_Loopback100'}}
-
 ```
 
-Finally pass the data to the template and render it.
+##### Step 5
 
-``` shell
->>>interface_config = template.render(interfaces=interfaces)
+Now render the template with the variables with the variables you created.
 
-```
-The resulting output is contained in the variable interfaces_config.
-
-``` shell
->>> print(interface_config)
-
-  interface GigabitEthernet2
-    duplex half
-    speed 100
-    description Configured_by_Python_GigabitEthernet2
-  interface GigabitEthernet1
-    duplex full
-    speed 1000
-    description Configured_by_Python_GigabitEthernet1
-  interface Loopback101
-    description Configured_by_Python_Loopback101
-  interface Loopback100
-    description Configured_by_Python_Loopback100
+```python
+>>> snmp_config = template.render(contact=snmp_contact, location=snmp_location, ro_string=snmp_ro, rw_string=snmp_rw)
 >>> 
-
 ```
 
+Print the `snmp_config` using the `print` command.
+
+```python
+>>> print snmp_config
+snmp-server contact JOHN SMITH
+snmp-server location NEW YORK CITY
+snmp-server community networktocode ro
+snmp-server community netsecret123 rw
+>>> 
+```
+
+This config could now be sent to the device with netmiko (or equivalent).
 
 ##### Step 6
 
-Open this new file in Sublime Text or any other text editor.
+Create the following new variable in the Python shell.
 
-We will be using the Jinja2 library to render the configuration. Go ahead and import the `Environment` and `FileSystemLoader` objects at the top of the script.
+```python
+>>> snmp = dict(contact='JACK SMITH', location='NYC', ro='n2c', rw='priv123')
+>>> 
+>>> print snmp
+{'location': 'NYC', 'rw': 'priv123', 'ro': 'n2c', 'contact': 'JACK SMITH'}
+>>> 
+```
 
-``` python
-from jinja2 import Environment, FileSystemLoader
+##### Step 7 (Challenge)
+
+Create a new template called `snmp-2.j2` that will work with the new variable just created, but still produce the same commands string.
+
+Ensure that passing a single variable called `snmp` to the template will allow it to render.
+
+Once the new template is created, you use it in the next step.
+
+Note: the solution is provided below.
+
+```
+
+Scroll for the solution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+**Solution:**
+
+```
+snmp-server contact {{ snmp.contact }}
+snmp-server location {{ snmp.location }}
+snmp-server community {{ snmp.ro }} ro
+snmp-server community {{ snmp.rw }} rw
+```
+
+You could have also done:
+
+```
+snmp-server contact {{ snmp['contact'] }}
+snmp-server location {{ snmp['location'] }}
+snmp-server community {{ snmp['ro'] }} ro
+snmp-server community {{ snmp['rw'] }} rw
+```
+
+
+##### Step 8
+
+Now render the template with the variables with the variables you created.
+
+```python
+>>> template = ENV.get_template("snmp-2.j2")
+>>> 
+>>> new_snmp_config = template.render(snmp=snmp)
+>>> 
+```
+
+Print the `snmp_config` using the `print` command.
+
+```python
+>>> print new_snmp_config
+snmp-server contact JACK SMITH
+snmp-server location NYC
+snmp-server community n2c ro
+snmp-server community priv123 rw
+>>> 
+```
+
+Do not exit the Python shell.
+
+
+### Task 2 - Loading Data from a YAML file and rendering it with a Jinja2 Template
+
+##### Step 1
+
+This task builds on the previous task, but rather than create variables in Python, you will read them in from a YAML file.
+
+Create a **new** Jinja2 template called `acls.j2` that has the following text:
+
+```
+{% for rule in rules %}
+id {{ rule.id }} {{ rule.action }} from {{ rule.source }} to {{ rule.dest }} {% if rule.log %} log {% endif %}
+{%- endfor %}
+```
+
+> Note: In this template `rules` is a list of dictionaries and `rule` (each element in the list) is a dictionary.
+
+##### Step 2
+
+In the same directory as your templates, create a new YAML file that will be used as input data and rendered with the `acls` template.  
+
+Save the YAML file as `security.yml`
+
+The YAML file should have a single key called `rules` and it should be a list of dictionaries (key/value pairs).  Each rule entry should have five (5) key value pairs:
+
+  1. `id`     - integer, or id, to identify rule
+  2. `action` - permit or deny
+  3. `source` - IP Address, subnet, or group object name (simulation)
+  4. `dest`   - IP Address, subnet, or group object name (simulation)
+  5. `log`    - set true
+
+The solution is provided below.
+
+```
+Keep scrolling for the solution on what should be inside the YAML file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+YAML File solution:
+
+
+
+```yaml
+---
+
+rules:
+  - id: 2
+    action: permit
+    source: 1.1.1.1/23
+    dest: 4.4.4.4/32
+    log: true
+  - id: 5
+    action: permit
+    source: 1.1.1.1/23
+    dest: 4.4.4.4/32
+    log: true
 
 ```
 
 
 
+##### Step 3
 
-##### Step 7
+Import the `yaml` module while you are in the Python shell.
 
-Define a new function called `render_config` that takes the configuration data as input.
-
-``` python
-def render_config(interfaces):
-
+```python
+>>> import yaml
+>>>
 ```
 
+Read in the `acls.j2` template.
 
-The functions that we already created in the previous lab can be reused. The new function needed to collect user input will use python's inbuilt `raw_input` function.
-
-> The `raw_input` function is replaced with `input` in Python 3
-
-Go ahead and add this new function, calling it `user_input_interactive`
-
-``` python
-
-def user_input_interactive():
-    """Collect the device details from the user interactively"""
-    host = raw_input("Please enter the hostname or IP: ")
-    device_type = raw_input("Please enter the device type: ")
-    username = raw_input("Please enter the username: ")
-    password = raw_input("Please enter the password: ")
-    device_details = dict(device_type=device_type, ip=host,
-                          username=username, password=password)
-    return(device_details)
-
+```python
+>>> template = ENV.get_template("acls.j2")
 ```
-> `raw_input` allows you to prompt for user input by displaying the string passed to it.
 
-This function will collect the FQDN/IP address of the device, the device type and login credentials from the user, through an interactive prompt. 
 
 ##### Step 4
 
-Call this new function from `main()`. The `device_details` dictionary will be used to store the login details and the device type, needed by `netmiko` to connect to `csr1`. The values are provided by calling the function we just defined.
+Load the contents of the YAML file you created as a Python object and render the object with the template.
 
+Note: `acl_entries` will look different and will be based upon what you have in your custom YAML file.
 
-``` python
-def main():
-    """Generate and write interface configurations to a file
-    """
+> The YAML file when are keys are defined imports as one large dictionary in Python.
+> 
 
-    # Collect device details from user
-    device_details = user_input_interactive()
-
-    interfaces_dict = get_interfaces_from_file()
-    # Call a function that returns the configuration
-    commands_list = get_commands_list(interfaces_dict)
-
-    # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
-
-    # Deploy the configurations
-    deploy_config(file_name, device_details)
-
-    # End
-
-
+```python
+>>> sec_rules = yaml.load(open('security.yml'))
+>>> print sec_rules
+# output omitted 
 ```
 
-    
+See how the YAML file looks as dictionary?
+
 ##### Step 5
 
-The final, complete script should look like below:
+Render the final configuration using the `render` function.
 
-``` python
-#!/usr/bin/env python
-""" Code for Lab 15, Task 1"""
-import yaml
-from netmiko import ConnectHandler
+```python
+>>> acl_entries = template.render(rules=sec_rules['rules'])
+>>>
+>>> print acl_entries
 
-
-def generate_commands(config_params):
-    """Generate specific feature commands using feature name & value."""
-
-    cmd_list = []
-    for feature, value in config_params.items():
-        command = " {} {}".format(feature, value)
-        cmd_list.append(command)
-    return cmd_list
-
-
-def get_commands_list(interfaces):
-    """Return a list of interface configuration commands."""
-
-    # Iterate over the dictionary and generate configuration.
-
-    commands_list = []
-    for interface, config_params in interfaces.items():
-        interface_command = "interface {}".format(interface)
-        commands_list.append(interface_command)
-        feature_commands = generate_commands(config_params)
-        commands_list.extend(feature_commands)
-
-    return commands_list
-
-
-def print_config(commands_list):
-    """Print the commands as a list and config."""
-    # Print the results as a list
-    print("Commands as a List:")
-    print(commands_list)
-    print("--------------------")
-    # Print the results as config
-    print("Commands Simulating Config File:")
-    for command in commands_list:
-        print(command)
-
-
-def generate_config_file(commands_list, file_name):
-    """Write interface configs to a file"""
-    print("Opening file {} to write...".format(file_name))
-
-    with open(file_name, "w") as file_handler:
-        for command in commands_list:
-            file_handler.write("{}\n".format(command))
-
-
-def write_config(commands_list):
-    """Returns the file name of generated configurations."""
-    file_path = '/tmp/device.cfg'
-    print("Opening file {} to write...".format(file_path))
-    with open(file_path, "w") as file_handler:
-        for command in commands_list:
-            file_handler.write("{}\n".format(command))
-    return(file_path)
-
-
-def get_interfaces_from_file():
-    """ Read in YAML data of the interfaces and generate the dictionary"""
-    with open('csr1.yaml') as yaml_file_handler:
-        interfaces = yaml.load(yaml_file_handler)
-    return interfaces
-
-
-def get_interfaces():
-    """ Return a dictionary of interfaces containing attributes"""
-    interfaces = {
-        "GigabitEthernet1": {
-            "duplex": "full",
-            "speed": 1000,
-            "description": "Configured_by_Python_GigabitEthernet1"
-        },
-        "GigabitEthernet2": {
-            "duplex": "half",
-            "speed": 100,
-            "description": "Configured_by_Python_GigabitEthernet2"
-        },
-        "Loopback101": {
-            "description": "Configured_by_Python_Looback101"
-        },
-        "Loopback100": {
-            "description": "Configured_by_Python_Loopback100"
-        }
-    }
-
-    return interfaces
-
-
-def deploy_config(file_name, device_details):
-    """Connects to the device and deploys the configuration
-    """
-
-    print("Connecting to the remote device {}...\n"
-          .format(device_details['ip']))
-    # Invoke netmiko ConnectHandler and pass it the device details
-    device = ConnectHandler(**device_details)
-    # Send the config file
-    print("Sending the configuration from file {}...".format(file_name))
-    device.send_config_from_file(config_file=file_name)
-    device.disconnect()
-    print("Changes sent to device. Please log in and verify...")
-
-    return
-
-
-def user_input_interactive():
-    """Collect the device details from the user interactively"""
-    host = raw_input("Please enter the hostname or IP: ")
-    device_type = raw_input("Please enter the device type: ")
-    username = raw_input("Please enter the username: ")
-    password = raw_input("Please enter the password: ")
-    device_details = dict(device_type=device_type, ip=host,
-                          username=username, password=password)
-    return(device_details)
-
-
-def main():
-    """Generate and write interface configurations to a file
-    """
-
-    # Collect device details from user
-    device_details = user_input_interactive()
-
-    interfaces_dict = get_interfaces_from_file()
-    # Call a function that returns the configuration
-    commands_list = get_commands_list(interfaces_dict)
-
-    # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
-
-    # Deploy the configurations
-    deploy_config(file_name, device_details)
-
-    # End
-
-
-if __name__ == "__main__":
-    main()
+id 10 permit from inside to outside  log 
+id 20 permit from 1.1.1.1/32 to outside  log 
+id 30 permit from 10.0.0.0/8 to outside 
+>>> 
 
 ```
 
 
-##### Step 6
 
-Save and execute this script:
-
-
-``` shell
-ntc@ntc:~/scripts$ python raw_user_input.py
-Please enter the hostname or IP: csr1
-Please enter the device type: cisco_ios
-Please enter the username: ntc
-Please enter the password: ntc123
-Opening file /tmp/device.cfg to write...
-File /tmp/device.cfg has been generated...
-Connecting to the remote device csr1...
-
-Sending the configuration from file /tmp/device.cfg...
-Changes sent to device. Please log in and verify...
-
-```
-
-##### Step 7
-
-Finally, log into device `csr1` and ensure that the changes were pushed to the device.
-
-
-``` shell
-csr1#show interfaces description 
-Interface                      Status         Protocol Description
-Gi1                            up             up       Configured_by_Python_GigabitEthernet1
-Gi2                            admin down     down     Configured_by_Python_GigabitEthernet2
-Gi3                            admin down     down     
-Gi4                            admin down     down     
-Lo100                          up             up       Configured_by_Python_Loopback100
-Lo101                          up             up       Configured_by_Python_Loopback101
-csr1#
-```
-
-You have now successfully created a modular python script that reads in configration data from a YAML encoded file, generates device interface configurations and deploys the configurations to the end device!
