@@ -30,22 +30,26 @@ layout: true
 
 The primary objectives of this course is to learn and obtain foundational programming and automation skills with a focus on network engineering.
 
-In this course, you will learn the following (additionally includes git):
+In this course, you will learn how to get started with Python in the context of network automation.
 
 .left-column[
-- Python
-  - Data Types
-  - Conditionals, Loops, Functions
-  - Writing Scripts
-  - Command Line Arguments
-  - Working with Files and YAML
-  - Python Libraries
-  - Open Source Network Libraries
-  - HTTP-Based and RESTful APIs
-  - Vendor APIs
+- Data Types
+- Conditionals, Loops, Functions
+- Writing Scripts
+- Command Line Arguments
+- Working with Files 
+- Python Libraries
+- YAML
+- Jinja2 Templating
 
 ]
 
+.left-column[
+- Open Source Network Libraries
+- HTTP-Based and RESTful APIs (JSON/XML)
+- Vendor APIs
+
+]
 ---
 
 # Target Audience
@@ -69,14 +73,15 @@ The course does not assume any background in programming or software development
   - Working with Text & YAML Files
   - Configuration Templating with Jinaj2
   - Python Modules/Libraries
-- Network Operations with Python
-  - Getting Started with Netmiko
-  - Parsing show commands with Python
-  - Parsing show commands with TextFSM
+
 
 ]
 
 .right-column[
+- Network Operations with Python
+  - Getting Started with Netmiko
+  - Parsing show commands with Python
+  - Parsing show commands with TextFSM
 - Network APIs & Vendor Libraries
   - HTTP-Based APIs (JSON/REST)
   - Arista eAPI
