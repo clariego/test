@@ -59,41 +59,34 @@ The course does not assume any background in programming or software development
 # Course Layout
 
 .left-column[
-- Module 1 - Python
+- Python Foundations
   - Data Types
   - Conditionals
   - Loops
   - Functions
   - Writing Python Scripts
   - Command Line Arguments
-  - Working with Files
-  - Python Libraries
-- Module 2 - Python Network Libraries
-  - TextFSM
-  - netmiko
+  - Working with Text Files
+  - Working with YAML Files
+  - Python Modules/Libraries
+- Network Operations with Python
+  - Getting Started with Netmiko
+  - Parsing show commands with Python
+  - Parsing show commands with TextFSM
 
 ]
 
 .right-column[
-- Module 2 (cont'd) - Python Network Libraries
-  - NAPALM
-  - pyntc
-- Module 3 - Network APIs & Vendor Libraries
-  - HTTP-Based APIs
+- Network APIs & Vendor Libraries
+  - HTTP-Based APIs (JSON/REST)
   - Arista eAPI
   - Nexus NX-API
   - IOS-XE RESTCONF
   - Postman
+  - Understanding Data Modeling
 
 ]
 
----
-# Course Layout
-
-- Module 4 - YAML
-  - Data Types Review
-  - JSON Review
-  - Introduction to YAML
 
 
 ---
@@ -113,9 +106,10 @@ The course does not assume any background in programming or software development
 
 Everyone has a virtual topology that will be hosted in the public cloud for the week.  It includes:
 
-- 3 x CSR 1000V  (16.3.1 w/ RESTCONF/NETCONF/YANG)
+- 2 x CSR 1000V  (16.3.1 w/ RESTCONF/NETCONF/YANG)
 - 2 x NX-OSv (Virtual 7K running 7.3)
-- 4 x vEOS (4.15)
+- 2 x vEOS (4.15)
+- 2 x vMX (15.x)
 - 1 x Ubuntu Jump host
 
 
