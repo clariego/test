@@ -1,4 +1,4 @@
-## Lab 14 - Network Automation with Netmiko 
+## Lab 12 - Network Automation with Netmiko 
 
 In this lab, we will explore using netmiko for network automation.  
 
