@@ -66,8 +66,8 @@ The course does not assume any background in programming or software development
   - Functions
   - Writing Python Scripts
   - Command Line Arguments
-  - Working with Text Files
-  - Working with YAML Files
+  - Working with Text & YAML Files
+  - Configuration Templating with Jinaj2
   - Python Modules/Libraries
 - Network Operations with Python
   - Getting Started with Netmiko
