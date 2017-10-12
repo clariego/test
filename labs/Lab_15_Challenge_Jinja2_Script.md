@@ -1,4 +1,4 @@
-## Lab 14 - Rendering configuration using Jinja2
+## Lab 15 - Rendering configuration using Jinja2
 
 In the preceding labs, we incrementally built upon previous concepts finally ending with a script that generated configuration and deployed it to an end device, based on user input. All along, we were using 2 functions - `generate_config_file` and `generate_commands` - to build our list of configuration commands. We were relying on the `format` string built-in method to correctly format our desired configurations. This can get quite unmanageable when we have to deal with large configurations.
 In this lab, we will use the Jinja2 templating engine to generate the configuration, in lieu of the format functions.
