@@ -368,6 +368,7 @@ device_details = user_input_interactive()`
 
 ```
 
+Add the following lines to the function:
 
 ```python
 user_input = user_input_parse()
