@@ -2,10 +2,248 @@
 
 In the previous lab, we used Python's `re` library to create match patterns against raw output from device show commands. In this lab, we will use the Open Source 3rd party library - TextFSM to achive the same result. 
 
+
+### Task 1 - Using TextFSM to Parse Raw Text
+
+As you've learned, TextFSM requires two inputs: a template and raw text.  This task walks you through the process of building a TextFSM template for the `show ip interface brief` command on Cisco Nexus switches that can then be used as an input to `textfsm.py` to easily extract the required data.
+
+##### Step 1
+
+Capture the text output that will be used for testing the template.  
+
+> NOTE: these steps are exactly the same no matter what OS is running on the device from IOS to NXOS, EOS, JunOS, etc.
+
+Normally, this is where you would connect to one of your devices and get the output for a specific show command, but for this task, we'll use the following output:
+
+```bash
+IP Interface Status for VRF "default"(1)
+Interface            IP Address      Interface Status
+Vlan10               10.20.10.1      protocol-down/link-down/admin-down
+Vlan20               10.20.20.1      protocol-down/link-down/admin-down
+Vlan30               10.20.30.1      protocol-down/link-down/admin-up
+Lo0                  10.20.0.101     protocol-up/link-up/admin-up
+Lo1                  10.20.1.101     protocol-up/link-up/admin-up
+Lo2                  10.20.2.101     protocol-up/link-up/admin-up
+Eth2/1               10.20.1.1       protocol-up/link-up/admin-up
+Eth2/2               10.20.1.5       protocol-down/link-down/admin-down
+Eth2/3               10.20.101.2     protocol-up/link-up/admin-up
+Eth2/4               10.20.102.2     protocol-up/link-up/admin-up
+```
+
+Note: This file already exists as cisco_nxos_show_ip_interface_brief.raw in the following directory: `/home/ntc/textfsm/`on your jump host.
+
+
+##### Step 2
+
+For this lab, we will define the *needs*, i.e. which values are important to extract.  The requirement is to extract five different pieces of data from the `show ip interface brief` output:
+  * interface
+  * ip address
+  * protocol status
+  * link status
+  * admin state
+
+##### Step 3
+
+Determine the regular expression specifically for each piece of data we want to extract. The information structure we want to extract is always the same regardless of the interface type. For example, considering the first interface we will want to parse the following values:  
+
+INTERFACE = Vlan10
+IP = 10.20.10.1  
+PROTOCOL = down
+STATUS = down
+ADMIN = down
+
+We will walk through two of these now and leave it as an exercise to complete the others.
+
+Let's start with the interface name.
+
+**Interface Regular Expression**
+
+The interface name is a combination of letters and numbers, but as you can see, it also has forward slashes such as `/`.  One way to capture this easily is to use the `\S+` which says to match one or more characters that are non-whitespace.
+
+Let's take a look at the IP address.
+
+**Interface Regular Expression**
+
+
+An IP is made up of four numbers separated from the others by a period.  Since a number is represented with `\d` using regular expressions, we can represent a full IP address using `\d+\.\d+\.\d+\.\d+`.  Note that since `.` is a special character in regular expressions, we need to escape it using `\` to match the actual period.
+
+> Note: we already know Cisco will only accept valid IP addresses as inputs, so you can simplify this regex by just using `\S+`.
+
+
+You can use [regexr.com](http://regexr.com) for further testing and validation.  Checkout their Regex cheatsheet too.
+
+
+We still need to determine Regular Expressions for the other 4 pieces of data we want to extract, but hold off on that for now (you will do this as the last step in this lab):
+
+INTERFACE = \S+
+
+IP = `\d+\.\d+\.\d+\.\d+`   => or \S+
+
+PROTOCOL = ?
+
+STATUS = ?
+
+ADMIN = ?
+
+
+##### Step 4
+
+Navigate to the `textfsm` sub-directory in your home directory.
+
+Create a TextFSM template to extract ONLY the interface name and save it as `cisco_nxos_show_ip_interface_brief.template`.
+
+This is what the template should look like:
+
+```
+Value INTERFACE (\S+)
+
+Start
+  ^${INTERFACE} -> Record
+```
+
+Few points to note about the template:
+
+**It must begin with `Value` <value-name-that-you-define> (<regex for just the data being extracted>)**
+
+The RegEx created in Step 3 gets enclosed in parentheses right next to what will become the "header" name for that specific column (and Python dictionary key for that specific value).  "Value" denotes the data that will be extracted from the raw text.  The Value lines must all appear before any state definitions and must be contiguous lines, separated only by comments. 
+
+**You must include the "Start" state and it must use a capital "S"**
+
+"Start" which is a reserved state (TextFSM is a finite state machine).  The FSM starts in state Start, so this label is mandatory and the template will not parse without it. This lab won't be using other states, but you can transition from one state to the next, which is helpful with command outputs that have several distinct sections.
+
+**Parsing Rules**
+
+Right below Start are rules, the full line(s) of text with the *Values* that we want to extract with the RegEx(es) inserted at its appropriate location.  The parsing happens one line at a time, so the rule must be able to identify the value you want to extract distinctly.
+
+Once their is a match on the specific line/rule in the state machine, you *Record* the value, so we include `-> Record` to perform this operation.  You can also perform no operation (do nothing on match), or transition to another state.
+
+In this one example, the full line was:
+
+```
+Vlan10               10.20.10.1      protocol-down/link-down/admin-down
+```
+
+And the rule to parse this line is:
+
+```
+  ^${INTERFACE} -> Record
+```
+
+This will parse and _Record_ the first grouping of non-white space characters on any line.  As you may expect, as it stands, it'll also capture the column headers.  As you add more variables to capture, they will not be caught anymore since that match will become more specific.
+
+
+> Note: The FSM reads a line from the input buffer and tests it against each rule, in turn, starting from the top of the current state. If a rule matches the line, then the action is carried out and the process repeats (from the top of the state again) with the next line. Source: [TextFSM Wiki](https://code.google.com/p/textfsm/wiki/TextFSMHowto)
+
+
+##### Step 5
+
+Save the template.
+
+##### Step 6
+
+Return to the terminal within the `textfsm` directory.
+
+Run the following command using `textfsm.py`:
+
+```bash
+ntc@ntc:~/textfsm$ python textfsm.py cisco_nxos_show_ip_interface_brief.template cisco_nxos_show_ip_interface_brief.raw
+```
+
+You will see the following output:
+```bash
+FSM Template:
+Value INTERFACE (\S+)
+
+Start
+  ^${INTERFACE} -> Record
+
+
+FSM Table:
+['INTERFACE']
+['IP']
+['Interface']
+['Vlan10']
+['Vlan20']
+['Vlan30']
+['Lo0']
+['Lo1']
+['Lo2']
+['Eth2/1']
+['Eth2/2']
+['Eth2/3']
+['Eth2/4']
+
+```
+
+Now we know the state machine and parsing is working as we want it to.
+
+##### Step 7
+
+Now update the template to extract the IP Address.
+
+
+```
+Value INTERFACE (\S+)
+Value IP (\d+\.\d+\.\d+\.\d+)
+
+Start
+  ^${INTERFACE}\s+${IP} -> Record
+```
+
+##### Step 8
+
+Save the updated template.
+
+##### Step 9
+
+Re-run the textfsm.py script.
+
+```bash
+ntc@ntc:~/textfsm$ python textfsm.py cisco_nxos_show_ip_interface_brief.template cisco_nxos_show_ip_interface_brief.raw 
+FSM Template:
+Value INTERFACE (\S+)
+Value IP (\d+\.\d+\.\d+\.\d+)
+
+Start
+  ^${INTERFACE}\s+${IP} -> Record
+
+
+FSM Table:
+['INTERFACE', 'IP']
+['Vlan10', '10.20.10.1']
+['Vlan20', '10.20.20.1']
+['Vlan30', '10.20.30.1']
+['Lo0', '10.20.0.101']
+['Lo1', '10.20.1.101']
+['Lo2', '10.20.2.101']
+['Eth2/1', '10.20.1.1']
+['Eth2/2', '10.20.1.5']
+['Eth2/3', '10.20.101.2']
+['Eth2/4', '10.20.102.2']
+
+```
+
+Now we've verified 2 of the 5 values are working as expected.
+
+##### Step 10
+
+Continue and finish the last 3 values, i.e. PROTOCOL, STATUS and ADMIN.
+
+Here is a hint for what the rule looks like after adding the next value.
+
+```
+^${INTERFACE}\s+${IP}\s+protocol-${PROTOCOL} -> Record
+```
+
+Please do one a time.  This helps the testing process tremendously.
+
+
+
 Additionally, we will collect as user input the location of the TextFSM template to be used, the show command to parse etc.
 
 
-### Task 1 - Parsing show version command output
+
+### Task 2 - Parsing show version command output
 
 ##### Step 1
 
@@ -410,7 +648,7 @@ Printing result.....
 
 
 
-### Task 2 - Parsing show ip interface command output
+### Task 3 - Parsing show ip interface command output
 
 In this task, we will reuse the code we just wrote and use it to parse the output of the `show ip interfaces brief` command instead.
 
@@ -463,7 +701,7 @@ This template captures the name of the interface, IP address, admin and protocol
 
 
 
-##### Step
+##### Step 4
 
 Now switch back to the `scripts` directory and execute the `textfsm_parse_command.py` script, passing the new template and command file as inputs
 
