@@ -325,7 +325,7 @@ def main():
 
 ```
 
-> The name of the file, that contains the desired configuration is provided by the `write_config` function as we saw in lab 12
+
 
 
 
