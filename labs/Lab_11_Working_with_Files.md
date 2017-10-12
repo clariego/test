@@ -302,7 +302,7 @@ Open the file in the text editor of your choice.
 
 ##### Step 4
 
-This file will contain the data for configuring our interfaces. Copy and paste the following into `csr1.yaml`.
+
 
 Go ahead and add this new function, calling it `generate_config_file`
 
