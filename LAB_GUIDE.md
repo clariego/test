@@ -16,7 +16,7 @@ Please be sure to review the [device information](labs/DEVICE_INFO.md) before st
 - [Lab 12 - Using Netmiko for Network Automation](labs/Lab_12_Using_Netmiko.md)
 - [Lab 13 - Passing In User Input to your Script](labs/Lab_13_User_Input.md)
 - [Lab 14 - Configuration Templating with Jinja2 and Python](labs/Lab_14_Config_Templating_Jinja2.md)
-- [Lab 15 - Challenge Lab: Integrating Jinja2 into the Python Script](labs/Lab_15_Challenge_Jinja2_Script.md.md)
+- [Lab 15 - Challenge Lab: Integrating Jinja2 into the Python Script](labs/Lab_15_Challenge_Jinja2_Script.md)
 - [Lab 16 - Parsing show commands with native Python](labs/Lab_16_Parsing_Python.md)
 - [Lab 17 - Parsing show commands with TextFSM](labs/Lab_17_Parsing_TextFSM.md)
 - [Lab 18 - Challenge Lab: Auto-Generating Interface Descriptions](labs/Lab_18_Challenge.md)
