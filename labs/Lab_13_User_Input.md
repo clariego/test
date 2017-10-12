@@ -361,6 +361,22 @@ This function will collect the FQDN/IP address of the device, the device type, l
 
 Call this new function from `main()`. Collect the user input dictionary into a variable called `user_input`. 
 
+Ensure you remove the following lines from the `main()` function:
+
+```python
+device_details = user_input_interactive()` 
+file_name = '/tmp/device.cfg'
+
+```
+
+
+```python
+user_input = user_input_parse()
+file_name = user_input.pop('file_name')
+device_details = user_input  # not technically reuiqred, but we're doing this to limit changes in the function call to `deploy_config()`
+```
+
+Here is the updated `main()` function.
 
 ``` python
 def main():
@@ -382,10 +398,7 @@ def main():
     commands_list = get_commands_list(interfaces_dict)
 
     # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
+    generate_config_file(commands_list, file_name)
 
     # Deploy the configurations
     deploy_config(file_name, device_details)
@@ -548,8 +561,6 @@ def main():
     file_name = user_input.pop('file_name')
 
     # Collect the device_details
-    # re-naming for consistency, but could also just pass
-    # user_input to the deploy_config() function too
     device_details = user_input
 
     # Collect the interface details from file
@@ -558,15 +569,13 @@ def main():
     commands_list = get_commands_list(interfaces_dict)
 
     # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
+    generate_config_file(commands_list, file_name)
 
     # Deploy the configurations
     deploy_config(file_name, device_details)
 
     # End
+
 
 if __name__ == "__main__":
     main()
