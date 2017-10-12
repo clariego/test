@@ -61,12 +61,30 @@ This function will collect the FQDN/IP address of the device, the device type an
 
 Call this new function from `main()`. The `device_details` dictionary will be used to store the login details and the device type needed by `netmiko` to connect to `csr1`. The values are provided by calling the function we just defined.
 
+The following changes are required for the `main()` function:
+
+You'll be adding the line:
+
+```python
+device_details = user_input_interactive()
+```
+
+and removing the following lines:
+
+```python
+device_type = 'cisco_ios'
+ip = 'csr1'
+username = 'ntc'
+password = 'ntc123'
+```
+
 
 ``` python
 def main():
     """Generate and write interface configurations to a file
     """
     # Collect device details from user
+    # Add the following line:
     device_details = user_input_interactive()
 
     interfaces_dict = get_interfaces_from_file()
@@ -74,10 +92,8 @@ def main():
     commands_list = get_commands_list(interfaces_dict)
 
     # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
+    file_name = '/tmp/device.cfg'
+    generate_config_file(commands_list, file_name)
 
     # Deploy the configurations
     deploy_config(file_name, device_details)
@@ -202,8 +218,8 @@ def user_input_interactive():
 def main():
     """Generate and write interface configurations to a file
     """
-
     # Collect device details from user
+    # Add the following line:
     device_details = user_input_interactive()
 
     interfaces_dict = get_interfaces_from_file()
@@ -211,16 +227,13 @@ def main():
     commands_list = get_commands_list(interfaces_dict)
 
     # Call a function that writes configs to a file
-    file_name = write_config(commands_list)
-
-    # Output the file details
-    print("File {} has been generated...".format(file_name))
+    file_name = '/tmp/device.cfg'
+    generate_config_file(commands_list, file_name)
 
     # Deploy the configurations
     deploy_config(file_name, device_details)
 
     # End
-
 if __name__ == "__main__":
     main()
 
