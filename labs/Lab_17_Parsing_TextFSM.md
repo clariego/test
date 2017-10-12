@@ -1,4 +1,4 @@
-## Lab 16 -  Using TextFSM to parse device command output
+## Lab 17 -  Using TextFSM to parse device command output
 
 In the previous lab, we used Python's `re` library to create match patterns against raw output from device show commands. In this lab, we will use the Open Source 3rd party library - TextFSM to achive the same result. 
 

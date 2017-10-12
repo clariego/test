@@ -1,4 +1,4 @@
-## Lab 15 -  Using Regex to parse device command output
+## Lab 16 -  Using Regex to parse device command output
 
 In this lab, we will tackle the problem of gleaning relevant data from a blob of text - typically response data from CLI network devices using the `regex` standard Python library.
 
