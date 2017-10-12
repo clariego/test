@@ -365,7 +365,6 @@ Ensure you remove the following lines from the `main()` function:
 
 ```python
 device_details = user_input_interactive()` 
-file_name = '/tmp/device.cfg'
 
 ```
 
@@ -397,6 +396,8 @@ def main():
     # Call a function that returns the configuration
     commands_list = get_commands_list(interfaces_dict)
 
+    # Call a function that writes configs to a file
+    file_name = '/tmp/device.cfg'
     # Call a function that writes configs to a file
     generate_config_file(commands_list, file_name)
 
