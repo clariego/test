@@ -10,6 +10,7 @@ Navigate to the `scripts` directory within your home directory.:
 
 ```
 ntc@ntc:~$ cd scripts
+ntc@ntc:~/scripts$
 ```
 
 ##### Step 2
@@ -64,7 +65,7 @@ In order to visualize how the Jinja2 templating engine is rendering the configur
 
 From the command prompt type `python` to enter the Python interpreter shell
 
-``` shell
+``` python
 ntc@ntc:~/scripts$ python
 Python 2.7.12 (default, Nov 19 2016, 06:48:10) 
 [GCC 5.4.0 20160609] on linux2
@@ -76,27 +77,27 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 The Jinja2 templating engine needs to know about the location of the template file(s). This is done by importing the `Enivronment` and `FileSystemloader` objects from the Jinja2 library.
 
-``` shell
+``` python
 >>> from jinja2 import Environment, FileSystemLoader
 
 ```
 
 Create a variable called `ENV` to identify the directory containing the template file as a Jinja2 `Environment` object.
 
-``` shell
+``` python
 >>>ENV = Environment(loader=FileSystemLoader('./templates'))
 
 ```
 Now, collect the template file into a variable called `template`
 
-``` shell
+``` python
 >>>template = ENV.get_template('interfaces.j2')
 
 ```
 
 Then, collect the interface configuration data into a variable called interfaces
 
-``` shell
+``` python
 >>> import yaml
 >>> 
 >>> 
@@ -111,14 +112,14 @@ Then, collect the interface configuration data into a variable called interfaces
 
 Finally pass the data to the template and render it.
 
-``` shell
->>>interface_config = template.render(interfaces=interfaces)
+``` python
+>>> interface_config = template.render(interfaces=interfaces)
 
 ```
 The resulting output is contained in the variable interfaces_config.
 
-``` shell
->>>print(interface_config)
+``` python
+>>> print(interface_config)
 
   interface GigabitEthernet2
     duplex half
@@ -173,11 +174,22 @@ def render_config(interfaces):
 
 
 
-
-
 ##### Step 10
 
 Call this new function from `main()`. 
+
+Add the following Python statements just above the call to the `generate_config_file` function:
+
+```python
+    # Call a function that returns the configuration
+    config = render_config(interfaces_dict)
+    # Deploy the configurations
+    # push_config(config, device_details)
+    commands_list = config.splitlines()
+
+```
+
+The new complete main function should look like this:
 
 ``` python
 def main():
@@ -195,11 +207,13 @@ def main():
 
     # Collect the interface details from file
     interfaces_dict = get_interfaces_from_file(file_name)
+
     # Call a function that returns the configuration
     config = render_config(interfaces_dict)
     # Deploy the configurations
     # push_config(config, device_details)
     commands_list = config.splitlines()
+
     file_name = `/tmp/device.cfg'
     generate_config_file(commands_list, file_name)
     deploy_config(file_name, device_details)
@@ -266,16 +280,8 @@ def generate_config_file(commands_list, file_name):
     with open(file_name, "w") as file_handler:
         for command in commands_list:
             file_handler.write("{}\n".format(command))
-
-
-def write_config(commands_list):
-    """Returns the file name of generated configurations."""
-    file_path = '/tmp/device.cfg'
-    print("Opening file {} to write...".format(file_path))
-    with open(file_path, "w") as file_handler:
-        for command in commands_list:
-            file_handler.write("{}\n".format(command))
-    return(file_path)
+    # Output the file details
+    print("File {} has been generated...".format(file_name))
 
 
 def get_interfaces_from_file(file_name):
@@ -389,15 +395,17 @@ def main():
 
     # Collect the interface details from file
     interfaces_dict = get_interfaces_from_file(file_name)
+
     # Call a function that returns the configuration
     config = render_config(interfaces_dict)
     # Deploy the configurations
     # push_config(config, device_details)
     commands_list = config.splitlines()
-    file_name = write_config(commands_list)
+
+    file_name = `/tmp/device.cfg'
+    generate_config_file(commands_list, file_name)
     deploy_config(file_name, device_details)
     # End
-
 
 if __name__ == "__main__":
     main()
