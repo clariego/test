@@ -1,4 +1,4 @@
-## Lab 20 - Exploring the IOS-XE RESTCONF API
+## Lab 19 - Exploring the IOS-XE RESTCONF API
 
 ### Task 1 - Get Full Running Configuration
 

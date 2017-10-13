@@ -1,4 +1,4 @@
-## Lab 19.1 - Arista eAPI
+## Lab 18.1 - Arista eAPI
 
 ### Task 1 - Command Explorer
 

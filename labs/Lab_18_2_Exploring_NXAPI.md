@@ -1,4 +1,4 @@
-## Lab 19.2 - Cisco NX-API
+## Lab 18.2 - Cisco NX-API
 
 ### Task 1 - NX-API Developer Sandbox
 

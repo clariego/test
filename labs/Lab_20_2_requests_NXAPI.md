@@ -1,4 +1,4 @@
-## Lab 21.2 - Cisco NX-API
+## Lab 20.2 - Cisco NX-API
 
 ### Task 1 - Getting Started with the Python Requests Module
 

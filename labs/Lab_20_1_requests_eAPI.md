@@ -1,4 +1,4 @@
-## Lab 21.1 - Arista eAPI
+## Lab 20.1 - Arista eAPI
 
 ### Task 1 - Using Python requests with eapi
 

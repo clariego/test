@@ -1,4 +1,4 @@
-## Lab 23 - Junos XML API
+## Lab 22 - Junos XML API
 
 ### Task 1 - Getting Started with Junos PyEZ
 
