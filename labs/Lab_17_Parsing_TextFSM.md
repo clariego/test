@@ -241,9 +241,188 @@ Please do one a time.  This helps the testing process tremendously.
 
 Additionally, we will collect as user input the location of the TextFSM template to be used, the show command to parse etc.
 
+### Task 2 - Using Netmiko and TextFSM Together
+
+##### Step 1
+
+Navigate to the `textfsm` directory while on the Linux shell.
+
+Copy and paste the following script into a new file called `netmiko-clitable-ios.py` in the `textfsm` directory.
+
+```python
+#! /usr/bin/env python
+
+import json
+import clitable
+from netmiko import ConnectHandler
+from ntc_course import clitable_to_dict
+
+TEMPLATES_DIR = '/etc/ntc/ansible/library/ntc-ansible/ntc-templates/templates'
+INDEX_FILE = '/etc/ntc/ansible/library/ntc-ansible/ntc-templates/templates/index'
+
+if __name__ == "__main__":
+
+    platform = 'cisco_ios'
+    host = 'csr1'
+    command = 'show ip int brief'
+
+    device = ConnectHandler(
+                device_type=platform,
+                ip=host,
+                username='ntc',
+                password='ntc123'
+                )
+
+    rawtxt = device.send_command(command)
+
+    # this script is using clitable objects that are part of textfsm
+    # to help manage when you use a large qty of templates
+
+    cli_table = clitable.CliTable(INDEX_FILE, TEMPLATES_DIR)
+
+    attrs = {
+        'Command': command,
+        'Platform': platform
+    }
+
+    # based on the command and platform, the right template is used
+    # based on an index file - see PATH above for index file
+
+    cli_table.ParseCmd(rawtxt, attrs)
+
+    # helper function used to convert native list of lists from textfsm
+    # to a list of dictionaries
+
+    structured_data = clitable_to_dict(cli_table)
+
+    print json.dumps(structured_data, indent=4)
+
+```
+
+##### Step 2
+
+Take a few minutes to understand the script.  Here is a brief overview:
+
+- The `ConnectHandler` is the same as we've already used in the previous task - there is nothing new here.
+- The netmiko device method `send_command` is used to capture output from the switch (again, nothing new here)
+- The variable `attrs` is created which is a dictionary that has two key-value pairs.  The keys map directly to the column headers as defined in the TextFSM `index` file.  Feel free to look at the file.  It's located here: `/etc/ntc/ansible/library/ntc-ansible/ntc-templates/templates/index`
+- Once `attrs` is created, it denotes the command we will be parsing using a TextFSM template
+- Then we use the `ParseCmd` method of the `cli_table` object to perform the magic of using the right template to parse the raw text based on the parameters being used, i.e. `rawtxt` and `attrs`.  Internal to the `cli_table`, the right template is used based on the inputs of command and platform from the `attrs` object.  Then `textfsm` is used just as we learned in the previous lab.
+- The final output is the "list" output just like the previous lab
+- While out of scope at this point for further review, the `cli_table` object is then sent to a helper function to create a list of dictionaries for a more standardized output.
+- Finally, the new object is printed to the terminal.
+
+##### Step 3
+
+Execute the script using the following command:
+
+```bash
+ntc@ntc:~/textfsm$ python netmiko-clitable-ios.py 
+```
 
 
-### Task 2 - Parsing show version command output
+```bash
+ntc@ntc:~/textfsm$ python netmiko-clitable-ios.py
+[
+    {
+        "status": "up", 
+        "intf": "GigabitEthernet1", 
+        "ipaddr": "10.0.0.51", 
+        "proto": "up"
+    }, 
+    {
+        "status": "up", 
+        "intf": "GigabitEthernet2", 
+        "ipaddr": "10.254.13.1", 
+        "proto": "up"
+    }, 
+    {
+        "status": "up", 
+        "intf": "GigabitEthernet3", 
+        "ipaddr": "unassigned", 
+        "proto": "up"
+    }, 
+    {
+        "status": "up", 
+        "intf": "GigabitEthernet4", 
+        "ipaddr": "10.254.12.1", 
+        "proto": "up"
+    }
+]
+
+```
+
+When you combine netmiko with TextFSM, you get a pseudo-API comparable to Cisco Nexus NX-API or Arista eAPI that takes a command in and returns structured data.
+
+
+#### Step 4
+
+Feel free to make changes as you desire and try other commands.
+
+This is a list of commands / templates of common commands.
+
+For an exact list of commands supported, navigate [here](https://github.com/networktocode/ntc-templates/templates)
+
+* arista_eos_show_clock.template                 
+* cisco_ios_show_ip_arp.template             
+* cisco_nxos_show_flogi_database.template
+* arista_eos_show_interfaces_status.template     
+* cisco_ios_show_ip_bgp_summary.template     
+* cisco_nxos_show_interface_brief.template
+* arista_eos_show_ip_access-lists.template       
+* cisco_ios_show_ip_bgp.template             
+* cisco_nxos_show_interface_status.template
+* arista_eos_show_ip_arp.template                
+* cisco_ios_show_ip_int_brief.template       
+* cisco_nxos_show_inventory.template
+* arista_eos_show_ip_interface_brief.template    
+* cisco_ios_show_ip_ospf_neighbor.template   
+* cisco_nxos_show_ip_arp_detail.template
+* arista_eos_show_lldp_neighbors.template        
+* cisco_ios_show_ip_route.template           
+* cisco_nxos_show_ip_ospf_neighbor_vrf.template
+* arista_eos_show_mlag.template                  
+* cisco_ios_show_lldp_neighbors.template     
+* cisco_nxos_show_ip_route.template
+* arista_eos_show_snmp_community.template        
+* cisco_ios_show_mac-address-table.template  
+* cisco_nxos_show_lldp_neighbors.template
+* arista_eos_show_vlan.template                  
+* cisco_ios_show_snmp_community.template     
+* cisco_nxos_show_mac_address-table.template
+* cisco_ios_show_access-list.template            
+* cisco_ios_show_spanning-tree.template      
+* cisco_nxos_show_port-channel_summary.template
+* cisco_ios_show_cdp_neighbors.template          
+* cisco_ios_show_standby_brief.template      
+* cisco_nxos_show_version.template
+* cisco_ios_show_clock.template                  
+* cisco_ios_show_vtp_status.template         
+* cisco_nxos_show_vlan.template
+* cisco_ios_show_interfaces_status.template      
+* cisco_nxos_show_access-lists.template      
+* cisco_nxos_show_vpc.template
+* cisco_ios_show_interfaces.template             
+* cisco_nxos_show_cdp_neighbors.template     
+* cisco_wlc_ssh_show_sysinfo.template
+* cisco_ios_show_interface_transceiver.template  
+* cisco_nxos_show_clock.template             
+* hp_comware_display_vlan_brief.template
+* cisco_ios_show_inventory.template              
+* cisco_nxos_show_feature.template
+
+You can try any of the associated commands that start with "cisco_ios" on your router (assuming the device supports the command).  The commands supported map directly to the template name removing "cisco_ios" and substituting spaces for underscores.
+
+
+**Once you see and understand the data coming back, you can use it in your own scripts.**
+
+# STOP!
+
+# BONUS TASKS
+
+You should only move forward with these tasks if you have extra time. They aren't meant to be performed in the course.  They are purely bonus and challenge labs.
+
+### Task 3 - Parsing show version command output
 
 ##### Step 1
 
@@ -648,7 +827,7 @@ Printing result.....
 
 
 
-### Task 3 - Parsing show ip interface command output
+### Task 4 - Parsing show ip interface command output
 
 In this task, we will reuse the code we just wrote and use it to parse the output of the `show ip interfaces brief` command instead.
 
@@ -754,5 +933,5 @@ Printing result.....
         "up"
     ]
 ]
-(ve
+
 ```
