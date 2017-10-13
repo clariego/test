@@ -468,9 +468,9 @@ def generate_config_file(commands_list, file_name):
     print("File {} has been generated...".format(file_name))
 
 
-def get_interfaces_from_file():
+def get_interfaces_from_file(file_name):
     """Read in YAML data of the interfaces and generate the dictionary"""
-    with open('csr1.yml') as yaml_file_handler:
+    with open(file_name) as yaml_file_handler:
         interfaces = yaml.load(yaml_file_handler)
     return interfaces
 
